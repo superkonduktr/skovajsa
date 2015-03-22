@@ -2,29 +2,19 @@
   (:require [overtone.studio.midi :as midi]
             [overtone.libs.event :as e]
             [com.stuartsierra.component :as component]
-            [skovajsa.launchpad.events :refer [all-events]]
+            [skovajsa.launchpad.events :as events]
             [skovajsa.launchpad.led :as led]
             [skovajsa.launchpad.grid :as grid]))
 
-(defn bind-events!
-  [dvc rcv]
-  (map (fn [e] (e/on-event (:event e) (:handler e) (:key e)))
-       (all-events dvc rcv)))
-
-(defn unbind-events!
-  [dvc rcv]
-  (doseq [e (all-events dvc rcv)]
-    (e/remove-event-handler (:key e))))
-
-(defrecord Launchpad [dvc rcv grid]
+(defrecord Launchpad [dvc rcv grid handlers mode]
   component/Lifecycle
   (start [this]
     (let [d (midi/midi-find-connected-device "Launchpad")
           r (midi/midi-find-connected-receiver "Launchpad")]
-      (bind-events! d r)
+      (events/bind-all! {:dvc d :rcv r})
       (assoc this :dvc d :rcv r :grid (atom grid/init-grid))))
   (stop [this]
-    (unbind-events! dvc rcv)
+    (events/unbind-all! this)
     (led/all-led-off (:rcv this))
     this)
   grid/Grid
