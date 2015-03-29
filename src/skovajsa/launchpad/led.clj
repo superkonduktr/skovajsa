@@ -20,9 +20,9 @@
     (Thread/sleep dur)))
 
 (defn all-led-off
-  [rcv]
+  [lp]
   (doseq [n (range 127)]
-    (midi/midi-note-off rcv n)))
+    (midi/midi-note-off (:rcv lp) n)))
 
 (comment
   (lp-print-str (-> system :launchpad :rcv ) "kotek" 120 500))

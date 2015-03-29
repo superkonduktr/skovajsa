@@ -5,4 +5,4 @@
  (defn new-system
    []
    (component/system-map
-     :launchpad (new-launchpad)))
+     :launchpad (new-launchpad {:default-mode :session})))

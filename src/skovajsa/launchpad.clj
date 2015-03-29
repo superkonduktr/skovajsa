@@ -1,11 +1,12 @@
 (ns skovajsa.launchpad
   (:require [overtone.studio.midi :as midi]
-            [overtone.libs.event :as e]
             [com.stuartsierra.component :as component]
-            [skovajsa.launchpad.events :as events]
             [skovajsa.launchpad.led :as led]
             [skovajsa.launchpad.grid :as grid]
-            [clojure.tools.logging :as log]))
+            [skovajsa.launchpad.events :as events]
+            [skovajsa.launchpad.mode :as mode]
+            [clojure.tools.logging :as log]
+            [overtone.libs.event :as e]))
 
 (defn get-btn
   [lp x y]
@@ -15,8 +16,8 @@
   [lp x y val vel]
   (swap! (:grid lp) assoc [x y] {:val val :vel vel}))
 
-(defn connect-launchpad!
-  []
+(defn init-launchpad!
+  [config]
   (let [d (midi/midi-find-connected-device "Launchpad")
         r (midi/midi-find-connected-receiver "Launchpad")]
     (do
@@ -26,26 +27,33 @@
       (if r
         (log/info "Launchpad receiver connected.")
         (log/warn "Failed to connect Launchpad receiver."))
-      {:dvc d :rcv r})))
+      (let [lp {:dvc d :rcv r
+                :grid (atom grid/init-grid)
+                :mode (atom nil)
+                :config config}
+            mode-nav (mode/mode-nav lp)]
+        (mode/set-mode! lp (:default-mode config))
+        (e/on-event (:event mode-nav) (:handler mode-nav) (:key mode-nav))
+        lp))))
 
-(defrecord Launchpad [dvc rcv grid handlers mode]
+(defrecord Launchpad [dvc rcv grid handlers mode config]
   component/Lifecycle
   (start [this]
-    (let [lp (connect-launchpad!)]
-      (events/bind-all! lp)
-      (assoc this :dvc (:dvc lp)
-                  :rcv (:rcv lp)
-                  :grid (atom grid/init-grid)
-                  :handlers nil
-                  :mode nil)))
+    (merge this (init-launchpad! config)))
   (stop [this]
+    (led/all-led-off this)
     (events/unbind-all! this)
-    (led/all-led-off (:rcv this)))
+    this)
+  mode/Mode
+  (get-mode [this]
+    (mode/mode this))
+  (set-mode! [this m]
+    (mode/set-mode! this m))
   grid/Grid
   (get-btn [_ x y]
     (get-btn grid x y))
   (upd-btn! [_ x y val vel]
     (upd-btn! grid x y val vel)))
 
-(defn new-launchpad []
-  (map->Launchpad {}))
+(defn new-launchpad [config]
+  (map->Launchpad {:config config}))
