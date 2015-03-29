@@ -2,6 +2,7 @@
   (:require [overtone.studio.midi :as midi]
             [overtone.libs.event :as e]))
 
+;; Handlers consist of event
 (defn echo-repl
   []
   {:event [:midi :note-on]
@@ -12,7 +13,7 @@
   [rcv vel]
   {:event [:midi :note-on]
    :handler (fn [e] (midi/midi-note-on rcv (:note e) vel))
-   :key :echo-led}) )
+   :key :echo-led})
 
 (defn handlers
   [lp]
@@ -32,10 +33,9 @@
   (get mode-map mode))
 
 (defn bind!
-  "Binds the seq of events to the Launchpad device and/or receiver, provided
-  inside as a component. Returns the Launchpad component."
-  [lp keys]
-  (doseq [h (-> (handlers lp) (select-keys keys) vals)]
+  "Binds a seq of events to the Launchpad. Returns the Launchpad component."
+  [lp events]
+  (doseq [h (-> (handlers lp) (select-keys events) vals)]
     (e/on-event (:event h) (:handler h) (:key h)))
   lp)
 

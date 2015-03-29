@@ -1,7 +1,8 @@
 (ns skovajsa.launchpad.mode
   (:require [overtone.studio.midi :as midi]
             [overtone.libs.event :as e]
-            [skovajsa.launchpad.events :as events]))
+            [skovajsa.launchpad.events :as events]
+            [skovajsa.launchpad.led :as led]))
 
 (defprotocol Mode
   (get-mode [lp])
@@ -19,13 +20,15 @@
   (do
     (events/unbind-all! lp)
     (events/bind-for-mode! lp mode)
+    (led/control-led-off lp)
+    (led/control-led-on lp mode)
     (reset! (:mode lp) mode)
     lp))
 
 ;; This handler is bound on the init stage. It persists through all modes
 ;; and thus resides in this ns.
 (defn mode-nav
-  "Mode navigation through the 4 round buttons in the very first row on the right."
+  "Mode navigation through the four top right round buttons."
   [lp]
   {:event [:midi :control-change]
    :handler (fn [e]
