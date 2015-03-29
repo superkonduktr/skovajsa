@@ -1,8 +1,20 @@
 (ns skovajsa.launchpad.events
   (:require [overtone.studio.midi :as midi]
-            [overtone.libs.event :as e]))
+            [overtone.libs.event :as e]
+            [skovajsa.launchpad.utils :as utils]
+            [skovajsa.launchpad.grid :as grid]))
 
-;; Handlers consist of event
+(defn toggle-btn
+  [lp btn color]
+  (let [note (utils/xy->note btn)]
+    (if (nil? (grid/get-btn lp btn))
+      (do
+        (midi/midi-note-on (:rcv lp) note (utils/color->vel color))
+        (grid/upd-btn! lp btn color))
+      (do
+        (midi/midi-note-off (:rcv lp) note)
+        (grid/upd-btn! lp btn nil)))))
+
 (defn echo-repl
   []
   {:event [:midi :note-on]
@@ -10,15 +22,15 @@
    :key :echo-repl})
 
 (defn echo-led
-  [rcv vel]
+  [lp color]
   {:event [:midi :note-on]
-   :handler (fn [e] (midi/midi-note-on rcv (:note e) vel))
+   :handler (fn [e] (toggle-btn lp (utils/note->xy (:note e)) color))
    :key :echo-led})
 
 (defn handlers
   [lp]
   {:echo-repl (echo-repl)
-   :echo-led (echo-led (:rcv lp) 120)})
+   :echo-led (echo-led lp :green)})
 
 ;; All modes have one persistent event handler, :mode-nav,
 ;; that provides switching between modes.

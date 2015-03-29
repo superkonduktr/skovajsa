@@ -8,13 +8,13 @@
             [clojure.tools.logging :as log]
             [overtone.libs.event :as e]))
 
-(defn get-btn
-  [lp x y]
-  (get @(:grid lp) [x y]))
+(defprotocol Mode
+  (get-mode [lp])
+  (set-mode! [lp mode]))
 
-(defn upd-btn!
-  [lp x y val vel]
-  (swap! (:grid lp) assoc [x y] {:val val :vel vel}))
+(defprotocol Grid
+  (get-btn [lp x y])
+  (upd-btn! [lp x y val]))
 
 (defn init-launchpad!
   [config]
@@ -44,16 +44,16 @@
     (led/all-led-off this)
     (events/unbind-all! this)
     this)
-  mode/Mode
+  Mode
   (get-mode [this]
     (mode/mode this))
   (set-mode! [this m]
     (mode/set-mode! this m))
-  grid/Grid
+  Grid
   (get-btn [_ x y]
-    (get-btn grid x y))
-  (upd-btn! [_ x y val vel]
-    (upd-btn! grid x y val vel)))
+    (grid/get-btn grid x y))
+  (upd-btn! [_ x y color]
+    (grid/upd-btn! grid x y color)))
 
 (defn new-launchpad [config]
   (map->Launchpad {:config config}))

@@ -2,11 +2,8 @@
   (:require [overtone.studio.midi :as midi]
             [overtone.libs.event :as e]
             [skovajsa.launchpad.events :as events]
-            [skovajsa.launchpad.led :as led]))
-
-(defprotocol Mode
-  (get-mode [lp])
-  (set-mode! [lp mode]))
+            [skovajsa.launchpad.led :as led]
+            [skovajsa.launchpad.utils :as utils]))
 
 (defn mode
   "Returns current Launchpad mode."
@@ -31,12 +28,5 @@
   "Mode navigation through the four top right round buttons."
   [lp]
   {:event [:midi :control-change]
-   :handler (fn [e]
-              (let [mode (case (:data1 e)
-                           108 :session
-                           109 :user1
-                           110 :user2
-                           111 :mixer
-                           nil)]
-                (set-mode! lp mode)))
+   :handler (fn [e] (set-mode! lp (utils/note->control (:data1 e))))
    :key :mode-nav})

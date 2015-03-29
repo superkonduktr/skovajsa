@@ -33,6 +33,20 @@
     :mixer 111
     (throw (IllegalArgumentException. (str "Unknown mode keyword: " mode)))))
 
+(defn note->control
+  "Converts a note to a keyword for corresponding control."
+  [n]
+  (case n
+    104 :up
+    105 :down
+    106 :left
+    107 :right
+    108 :session
+    109 :user1
+    110 :user2
+    111 :mixer
+    (throw (IllegalArgumentException. (str "Illegal note value: " n)))))
+
 (defn note->xy
   "Converts a note value (0-127) into a pair of coordinates on the
   Launchpad grid."
@@ -45,7 +59,7 @@
 (defn xy->note
   "Converts a pair of coordinates (1-8) on the Launchpad grid into
   a note value."
-  [x y]
+  [[x y]]
   (if (and (some #{x} (range 1 9)) (some #{y} (range 1 9)))
     (+ (* 16 (dec y)) (dec x))
-    (throw (IllegalArgumentException. "Illegal note coordinates"))))
+    (throw (IllegalArgumentException. "Illegal note coordinates: " [x y]))))

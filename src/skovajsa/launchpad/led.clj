@@ -18,9 +18,9 @@
    \o [3 4 18 21 33 33 38 38 49 54 65 70 81 86 98 101 115 116]})
 
 (defn lp-print-str
-  [lp str vel dur]
+  [lp str color dur]
   (doseq [c str]
-    (lp-print (:rcv lp) (get char-map c) (rand-int 127) dur)
+    (lp-print (:rcv lp) (get char-map c) (utils/color->vel color) dur)
     (Thread/sleep dur)))
 
 (defn control-led-on
@@ -28,7 +28,6 @@
   Accepts a Launchpad component, a mode keyword, and an optional
   color keyword which defaults to :green."
   ([lp control]
-    (prn (:rcv lp))
     (control-led-on lp control :green))
   ([lp control color]
     (midi/midi-control (:rcv lp)
@@ -54,4 +53,4 @@
   (control-led-off lp))
 
 (comment
-  (lp-print-str (-> system :launchpad) "kotek" 120 500))
+  (lp-print-str (-> system :launchpad) "kotek" :green 500))
