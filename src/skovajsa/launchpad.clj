@@ -8,13 +8,8 @@
             [clojure.tools.logging :as log]
             [overtone.libs.event :as e]))
 
-(defprotocol Mode
-  (get-mode [lp])
-  (set-mode! [lp mode]))
-
-(defprotocol Grid
-  (get-btn [lp x y])
-  (upd-btn! [lp x y val]))
+(def init-state
+  (zipmap mode/available-modes (repeat grid/init-grid)))
 
 (defn init-launchpad!
   [config]
@@ -27,33 +22,22 @@
       (if r
         (log/info "Launchpad receiver connected.")
         (log/warn "Failed to connect Launchpad receiver."))
-      (let [lp {:dvc d :rcv r
-                :grid (atom grid/init-grid)
-                :mode (atom nil)
-                :config config}
+      (let [lp {:dvc d :rcv r :config config
+                :state (atom init-state)
+                :mode (atom nil)}
             mode-nav (mode/mode-nav lp)]
         (mode/set-mode! lp (:default-mode config))
         (e/on-event (:event mode-nav) (:handler mode-nav) (:key mode-nav))
         lp))))
 
-(defrecord Launchpad [dvc rcv grid handlers mode config]
+(defrecord Launchpad [dvc rcv handlers mode config]
   component/Lifecycle
   (start [this]
     (merge this (init-launchpad! config)))
   (stop [this]
     (led/all-led-off this)
     (events/unbind-all! this)
-    this)
-  Mode
-  (get-mode [this]
-    (mode/mode this))
-  (set-mode! [this m]
-    (mode/set-mode! this m))
-  Grid
-  (get-btn [_ x y]
-    (grid/get-btn grid x y))
-  (upd-btn! [_ x y color]
-    (grid/upd-btn! grid x y color)))
+    this))
 
 (defn new-launchpad [config]
   (map->Launchpad {:config config}))

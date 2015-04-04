@@ -6,6 +6,19 @@
 (def all-colors
   [:low-red :red :full-red :low-amber :amber :orange :yellow :low-green :green])
 
+(defn note-on
+  [lp note color]
+  (midi/midi-note-on (:rcv lp) note (utils/color->vel color)))
+
+(defn note-off
+  [lp note]
+  (midi/midi-note-off (:rcv lp) note))
+
+(defn render-grid
+  [lp grid]
+  (doseq [xy (keys grid)]
+    (note-on lp (utils/xy->note xy) (get grid xy))))
+
 (defn lp-print
   [lp notes vel dur]
   (doseq [n notes]
@@ -38,7 +51,7 @@
   "Turns off all the square buttons and the round ones on the right."
   [lp]
   (doseq [n (range 127)]
-    (midi/midi-note-off (:rcv lp) n)))
+    (note-off lp n)))
 
 (defn control-led-off
   "Turns off all the round control buttons on the top."

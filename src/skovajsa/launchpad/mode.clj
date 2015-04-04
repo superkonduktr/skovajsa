@@ -1,14 +1,19 @@
 (ns skovajsa.launchpad.mode
-  (:require [overtone.studio.midi :as midi]
-            [overtone.libs.event :as e]
-            [skovajsa.launchpad.events :as events]
+  (:require [skovajsa.launchpad.events :as events]
             [skovajsa.launchpad.led :as led]
-            [skovajsa.launchpad.utils :as utils]))
+            [skovajsa.launchpad.utils :as utils]
+            [skovajsa.launchpad.grid :as grid]))
 
-(defn mode
-  "Returns current Launchpad mode."
-  [lp]
-  @(:mode lp))
+(def available-modes [:session :user1 :user2 :mixer :snake])
+
+(defn render-mode
+  "Render given mode on a Launchpad receiver."
+  [lp mode]
+  (do
+    (led/control-led-off lp)
+    (led/control-led-on lp mode)
+    (led/grid-led-off lp)
+    (led/render-grid lp (grid/current-grid lp))))
 
 (defn set-mode!
   "Rebinds event handlers depending on the provided mode.
@@ -17,13 +22,11 @@
   (do
     (events/unbind-all! lp)
     (events/bind-for-mode! lp mode)
-    (led/control-led-off lp)
-    (led/control-led-on lp mode)
+    (render-mode lp mode)
     (reset! (:mode lp) mode)
     lp))
 
-;; This handler is bound on the init stage. It persists through all modes
-;; and thus resides in this ns.
+;; This handler is bound on the init stage and persists through all modes.
 (defn mode-nav
   "Mode navigation through the four top right round buttons."
   [lp]

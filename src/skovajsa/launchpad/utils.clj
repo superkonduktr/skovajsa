@@ -15,6 +15,7 @@
     :yellow 49
     :low-green 20
     :green 52
+    nil 0
     (throw (IllegalArgumentException. (str "Unknown color keyword: " color)))))
 
 (defn control->note
@@ -31,7 +32,7 @@
     :user1 109
     :user2 110
     :mixer 111
-    (throw (IllegalArgumentException. (str "Unknown mode keyword: " mode)))))
+    nil))
 
 (defn note->control
   "Converts a note to a keyword for corresponding control."
