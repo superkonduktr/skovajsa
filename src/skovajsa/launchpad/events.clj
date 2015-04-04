@@ -2,18 +2,18 @@
   (:require [overtone.libs.event :as e]
             [skovajsa.launchpad.utils :as utils]
             [skovajsa.launchpad.grid :as grid]
-            [skovajsa.launchpad.led :as led]))
+            [skovajsa.launchpad.led :as led]
+            [skovajsa.launchpad.snake :as snake]))
 
 (defn toggle-btn
   [lp btn color]
-  (let [note (utils/xy->note btn)]
-    (if (nil? (grid/get-btn lp btn))
-      (do
-        (led/note-on lp note color)
-        (grid/upd-btn! lp btn color))
-      (do
-        (led/note-off lp note)
-        (grid/upd-btn! lp btn nil)))))
+  (if (nil? (grid/get-btn lp btn))
+    (do
+      (led/btn-on lp btn color)
+      (grid/upd-btn! lp btn color))
+    (do
+      (led/btn-off lp btn)
+      (grid/upd-btn! lp btn nil))))
 
 (defn echo-repl
   []
@@ -27,10 +27,18 @@
    :handler (fn [e] (toggle-btn lp (utils/note->xy (:note e)) color))
    :key :echo-led})
 
+(defn snake-nav
+  [lp]
+  {:event [:midi :control-change]
+   :handler (fn [e] (when (some #{(:data1 e)} [104 105 106 107])
+                      (snake/set-direction! lp (utils/note->control (:data1 e)))))
+   :key :snake-nav})
+
 (defn handlers
   [lp]
   {:echo-repl (echo-repl)
-   :echo-led (echo-led lp :green)})
+   :echo-led (echo-led lp :green)
+   :snake-nav (snake-nav lp)})
 
 ;; All modes have one persistent event handler, :mode-nav, that provides
 ;; switching between modes.
@@ -38,7 +46,8 @@
   {:session [:echo-repl :echo-led]
    :user1 [:echo-repl]
    :user2 [:echo-repl]
-   :mixer [:echo-led]})
+   :mixer [:echo-led]
+   :snake [:snake-nav]})
 
 (defn handlers-for-mode
   [mode]

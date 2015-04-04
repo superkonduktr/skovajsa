@@ -31,5 +31,6 @@
   "Mode navigation through the four top right round buttons."
   [lp]
   {:event [:midi :control-change]
-   :handler (fn [e] (set-mode! lp (utils/note->control (:data1 e))))
+   :handler (fn [e] (when (some #{(:data1 e)} [108 109 110 111])
+                      (set-mode! lp (utils/note->control (:data1 e)))))
    :key :mode-nav})

@@ -6,6 +6,7 @@
   Returns a corresponding velocity value."
   [color]
   (case color
+    nil 0
     :low-red 1
     :red 2
     :full-red 3
@@ -15,7 +16,6 @@
     :yellow 49
     :low-green 20
     :green 52
-    nil 0
     (throw (IllegalArgumentException. (str "Unknown color keyword: " color)))))
 
 (defn control->note

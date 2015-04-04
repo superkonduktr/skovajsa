@@ -4,15 +4,15 @@
 
  (def system (new-system))
 
- (defn start!
-   []
+ (defn start! []
    (alter-var-root #'system component/start))
 
- (defn stop!
-   []
+ (defn stop! []
    (alter-var-root #'system component/stop))
 
- (defn reset
-   []
+ (defn reset []
    (stop!)
    (start!))
+
+ (defn lp []
+   (:launchpad system))

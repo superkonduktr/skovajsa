@@ -30,7 +30,7 @@
         (e/on-event (:event mode-nav) (:handler mode-nav) (:key mode-nav))
         lp))))
 
-(defrecord Launchpad [dvc rcv handlers mode config]
+(defrecord Launchpad [dvc rcv mode config]
   component/Lifecycle
   (start [this]
     (merge this (init-launchpad! config)))
