@@ -23,7 +23,7 @@
     (events/unbind-all! lp)
     (events/bind-for-mode! lp mode)
     (render-mode lp mode)
-    (reset! (:mode lp) mode)
+    (swap! (:state lp) assoc :mode mode)
     lp))
 
 ;; This handler is bound on the init stage and persists through all modes.

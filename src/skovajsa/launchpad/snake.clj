@@ -1,5 +1,7 @@
 (ns skovajsa.launchpad.snake
-  (require [skovajsa.launchpad.led :as led]))
+  (:require [clojure.set :refer [difference]]
+            [skovajsa.launchpad.grid :as grid]
+            [skovajsa.launchpad.led :as led]))
 
 (def init-snake [[3 4] [4 4] [5 4]])
 
@@ -31,14 +33,15 @@
       (vec (rest s))
       [(if (> 8 head-x) (inc head-x) 1) head-y])))
 
-(defn render
-  [lp snake]
-  (doseq [b snake]
-    (led/btn-on lp b :amber)))
+(defn mouse
+  [lp]
+  (-> @(:state lp) :snake :mouse))
 
-(defn set-direction!
-  [lp d]
-  (swap! (:state lp) assoc-in [:snake] {:direction d}))
+(defn new-mouse
+  [snake]
+  (->> snake
+       (difference (set (for [x (range 1 9) y (range 1 9)] [x y])))
+       vec rand-nth))
 
 (defn direction-fn
   [lp]
@@ -46,13 +49,39 @@
     :up up
     :down down
     :left left
-    :right right))
+    :right right
+    nil))
 
-(defn start
+(defn set-direction!
+  [lp dr]
+  (swap! (:state lp) assoc-in [:snake :direction] dr))
+
+(defn set-mouse!
+  [lp snake]
+  (swap! (:state lp) assoc-in [:snake :mouse] (new-mouse snake)))
+
+(defn render
+  [lp snake]
+  (let [current (grid/current-grid lp)
+        new (merge current (zipmap snake (repeat :green))
+                   (when-let [m (mouse lp)] {m :amber}))]
+    (led/render-grid lp current new)))
+
+(defn init
+  [lp]
+  (set-mouse! lp init-snake)
+  (set-direction! lp :right))
+
+(defn start-snake
   [lp & [{:keys [speed]}]]
-  (set-direction! lp :right)
+  (init lp)
   (future
     (loop [s init-snake]
       (render lp s)
       (Thread/sleep (or speed 300))
-      (recur ((direction-fn lp) s)))))
+      (when (direction-fn lp)
+        (recur ((direction-fn lp) s))))))
+
+(defn stop-snake
+  [lp]
+  (swap! (:state lp) assoc-in [:snake :direction] nil))

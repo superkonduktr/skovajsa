@@ -45,9 +45,10 @@
   ([lp control]
     (control-led-on lp control :green))
   ([lp control color]
-    (midi/midi-control (:rcv lp)
-                       (utils/control->note control)
-                       (utils/color->vel color))))
+    (when (some #{control} [:session :user1 :user2 :mixer])
+      (midi/midi-control (:rcv lp)
+                         (utils/control->note control)
+                         (utils/color->vel color)))))
 
 (defn grid-led-off
   "Turns off all the square buttons and the round ones on the right."

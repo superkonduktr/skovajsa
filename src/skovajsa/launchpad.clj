@@ -9,7 +9,9 @@
             [overtone.libs.event :as e]))
 
 (def init-state
-  (zipmap mode/available-modes (repeat grid/init-grid)))
+  (assoc
+    (zipmap mode/available-modes (repeat {:grid grid/init-grid}))
+    :mode nil))
 
 (defn init-launchpad!
   [config]
@@ -22,19 +24,20 @@
       (if r
         (log/info "Launchpad receiver connected.")
         (log/warn "Failed to connect Launchpad receiver."))
-      (let [lp {:dvc d :rcv r :config config
-                :state (atom init-state)
-                :mode (atom nil)}
+      (let [lp {:dvc d :rcv r
+                :config config
+                :state (atom init-state)}
             mode-nav (mode/mode-nav lp)]
         (mode/set-mode! lp (:default-mode config))
-        (e/on-event (:event mode-nav) (:handler mode-nav) (:key mode-nav))
+        (apply e/on-event ((juxt :event :handler :key) mode-nav))
         lp))))
 
-(defrecord Launchpad [dvc rcv mode config]
+(defrecord Launchpad [dvc rcv state config]
   component/Lifecycle
   (start [this]
     (merge this (init-launchpad! config)))
   (stop [this]
+    (reset! (:state this) {})
     (led/all-led-off this)
     (events/unbind-all! this)
     this))
