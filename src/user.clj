@@ -16,11 +16,11 @@
    (stop!)
    (start!))
 
- (defn lp []
-   (:launchpad system))
+ (defn lp [] (:launchpad system))
 
  (defn snake
-   [lp & [speed]]
+   [& [speed auto-restart]]
    (do
-     (mode/set-mode! lp :snake)
-     (snake/start-snake lp {:speed (or speed 300)})))
+     (mode/set-mode! (lp) :snake)
+     (snake/start-snake (lp) {:speed (or speed 300)
+                              :auto-restart (or auto-restart true)})))

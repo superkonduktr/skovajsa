@@ -27,18 +27,11 @@
    :handler (fn [e] (toggle-btn lp (utils/note->xy (:note e)) color))
    :key :echo-led})
 
-(defn snake-nav
-  [lp]
-  {:event [:midi :control-change]
-   :handler (fn [e] (when (some #{(:data1 e)} [104 105 106 107])
-                      (snake/set-direction! lp (utils/note->control (:data1 e)))))
-   :key :snake-nav})
-
 (defn handlers
   [lp]
   {:echo-repl (echo-repl)
    :echo-led (echo-led lp :green)
-   :snake-nav (snake-nav lp)})
+   :snake-nav (snake/snake-nav lp)})
 
 ;; All modes have one persistent event handler, :mode-nav, that provides
 ;; switching between modes.
