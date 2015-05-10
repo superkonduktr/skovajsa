@@ -45,7 +45,7 @@
   ([lp control]
     (control-led-on lp control :green))
   ([lp control color]
-    (when (some #{control} [:session :user1 :user2 :mixer])
+    (when (some #{control} [:up :down :left :right :session :user1 :user2 :mixer])
       (midi/midi-control (:rcv lp)
                          (utils/control->note control)
                          (utils/color->vel color)))))
