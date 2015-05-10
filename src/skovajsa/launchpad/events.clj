@@ -3,7 +3,8 @@
             [skovajsa.launchpad.utils :as utils]
             [skovajsa.launchpad.grid :as grid]
             [skovajsa.launchpad.led :as led]
-            [skovajsa.launchpad.snake :as snake]))
+            [skovajsa.launchpad.snake :as snake]
+            [skovajsa.launchpad.checkers :as checkers]))
 
 (defn toggle-btn
   [lp btn color]
@@ -18,7 +19,9 @@
 (defn echo-repl
   []
   {:event [:midi :note-on]
-   :handler (fn [e] (prn (:note e)))
+   :handler (fn [e]
+              (let [n (:note e)]
+                (prn (format "cell %s, midi %s" (utils/note->xy n) n))))
    :key :echo-repl})
 
 (defn echo-led
@@ -35,16 +38,14 @@
 
 ;; All modes have one persistent event handler, :mode-nav, that provides
 ;; switching between modes.
-(def mode-map
-  {:session [:echo-repl :echo-led]
-   :user1 [:echo-repl]
-   :user2 [:echo-repl]
-   :mixer [:echo-led]
-   :snake [:snake-nav]})
-
 (defn handlers-for-mode
   [mode]
-  (get mode-map mode))
+  ({:session [:echo-repl :echo-led]
+     :user1 [:echo-repl]
+     :user2 [:echo-repl]
+     :mixer [:echo-led]
+     :snake [:snake-nav]
+     :checkers [:echo-repl]} mode))
 
 (defn bind!
   "Binds a seq of events to the Launchpad. Returns the Launchpad component."

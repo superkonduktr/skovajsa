@@ -4,7 +4,7 @@
             [skovajsa.launchpad.utils :as utils]
             [skovajsa.launchpad.grid :as grid]))
 
-(def available-modes [:session :user1 :user2 :mixer :snake])
+(def available-modes [:session :user1 :user2 :mixer :snake :checkers])
 
 (defn render-mode
   "Render given mode on a Launchpad receiver."
