@@ -9,10 +9,14 @@
   [lp]
   (:mode @(:state lp)))
 
+(defn grid-for-mode
+  [lp mode]
+  (get-in @(:state lp) [mode :grid]))
+
 (defn current-grid
-  "Returns the entire Launchpad grid for current mode."
+  "Returns the entire Launchpad grid for the current mode."
   [lp]
-  (get-in @(:state lp) [(current-mode lp) :grid]))
+  (grid-for-mode lp (current-mode lp)))
 
 (defn get-btn
   "Returns value of a button on the current Launchpad grid."

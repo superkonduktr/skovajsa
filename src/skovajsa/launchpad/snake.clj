@@ -66,14 +66,14 @@
   [lp snake mouse]
   (let [current (grid/current-grid lp)
         new (merge current (zipmap snake (repeat :green)) {mouse :amber})]
-    (led/render-grid lp current new)))
+    (led/upd-grid lp current new)))
 
 (defn- render-game-over
   [lp snake]
   (let [current (grid/current-grid lp)
         dead (fn [color] (merge current (zipmap snake (repeat color))))]
     (doseq [c [:full-red :red :low-red nil]]
-      (led/render-grid lp current (dead c))
+      (led/upd-grid lp current (dead c))
       (Thread/sleep 300))))
 
 ;; Event handlers & launching

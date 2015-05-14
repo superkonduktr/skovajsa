@@ -12,8 +12,7 @@
   (do
     (led/control-led-off lp)
     (led/control-led-on lp mode)
-    (led/grid-led-off lp)
-    (led/render-grid lp (grid/current-grid lp))))
+    (led/upd-grid lp (grid/current-grid lp) (grid/grid-for-mode lp mode))))
 
 (defn set-mode!
   "Rebinds event handlers depending on the provided mode.
