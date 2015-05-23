@@ -34,7 +34,8 @@
   [lp]
   {:echo-repl (echo-repl)
    :echo-led (echo-led lp :green)
-   :snake-nav (snake/snake-nav lp)})
+   :snake-nav (snake/snake-nav lp)
+   :checkers-handler (checkers/checkers-handler lp)})
 
 ;; All modes have one persistent event handler, :mode-nav, that provides
 ;; switching between modes.
@@ -45,7 +46,7 @@
      :user2 [:echo-repl]
      :mixer [:echo-led]
      :snake [:snake-nav]
-     :checkers [:echo-repl]} mode))
+     :checkers [:echo-repl :checkers-handler]} mode))
 
 (defn bind!
   "Binds a seq of events to the Launchpad. Returns the Launchpad component."
