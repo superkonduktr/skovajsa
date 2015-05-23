@@ -20,8 +20,9 @@
                    [5 2] [7 2] [2 3] [4 3] [6 3] [8 3]])}))
 
 (defn render-board
-  [lp colors players]
-  (let [cells->map (fn [cs color] (into {} (map vector cs (repeat color))))
+  [lp players]
+  (let [colors (-> lp :config :checkers :colors)
+        cells->map (fn [cs color] (into {} (map vector cs (repeat color))))
         player-m (fn [p] (-> players (get p) keys (cells->map (get colors p))))
         free-cells-m (cells->map (->> [board
                                        (-> players :player-1 keys)
@@ -47,7 +48,7 @@
   (some? (some #{xy} (-> board turn keys))))
 
 (defn start-game
-  [lp colors]
+  [lp]
   (swap! (:state lp) assoc-in [:checkers :turn] :player-1)
   (swap! (:state lp) assoc-in [:checkers :board] init-players)
-  (render-board lp colors init-players))
+  (render-board lp init-players))

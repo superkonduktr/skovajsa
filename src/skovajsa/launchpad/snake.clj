@@ -103,22 +103,25 @@
 (defn start-snake
   [lp & [{:keys [speed auto-restart]}]]
   (set-direction! lp :right)
-  (future
-    (loop [s init-snake
-           m (new-mouse s)]
-      (if (bumped? s)
-        (do
-          (render-game-over lp s)
-          (when auto-restart
-            (start-snake lp {:speed speed :auto-restart true})))
-        (do
-          (render lp s m)
-          (Thread/sleep speed)
-          (when (direction-fn lp)
-            (if (= m (last s))
-              (let [new-s (into [(first s)] ((direction-fn lp) s))]
-                (recur new-s (new-mouse new-s)))
-              (recur ((direction-fn lp) s) m))))))))
+  (let [config (-> lp :config :snake)
+        speed (or speed (:speed config))
+        auto-restart (or auto-restart (:auto-restart config))]
+    (future
+      (loop [s init-snake
+             m (new-mouse s)]
+        (if (bumped? s)
+          (do
+            (render-game-over lp s)
+            (when auto-restart
+              (start-snake lp {:speed speed :auto-restart auto-restart})))
+          (do
+            (render lp s m)
+            (Thread/sleep speed)
+            (when (direction-fn lp)
+              (if (= m (last s))
+                (let [new-s (into [(first s)] ((direction-fn lp) s))]
+                  (recur new-s (new-mouse new-s)))
+                (recur ((direction-fn lp) s) m)))))))))
 
 (defn stop-snake
   [lp]
