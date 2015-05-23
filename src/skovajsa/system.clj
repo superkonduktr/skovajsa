@@ -5,7 +5,10 @@
  (def config
    {:launchpad {:default-mode :session
                 :snake {:speed 300
-                        :auto-restart true}}})
+                        :auto-restart true}
+                :checkers {:colors {:board nil
+                                    :player-1 :orange
+                                    :player-2 :green}}}})
 
  (defn new-system
    []
