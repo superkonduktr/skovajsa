@@ -65,7 +65,7 @@
 (defn- render
   [lp snake mouse]
   (let [current (grid/current-grid lp)
-        new (merge current (zipmap snake (repeat :green)) {mouse :amber})]
+        new (merge (zipmap snake (repeat :green)) {mouse :amber})]
     (led/upd-grid lp current new)))
 
 (defn- render-game-over

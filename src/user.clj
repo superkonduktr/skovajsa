@@ -2,7 +2,8 @@
    (:require [skovajsa.system :refer [new-system]]
              [com.stuartsierra.component :as component]
              [skovajsa.launchpad.mode :as mode]
-             [skovajsa.launchpad.snake :as snake]))
+             [skovajsa.launchpad.snake :as snake]
+             [clojure.tools.logging :as log]))
 
  (def system (new-system))
 
@@ -10,6 +11,7 @@
    (alter-var-root #'system component/start))
 
  (defn stop! []
+   (log/info "Stopping")
    (alter-var-root #'system component/stop))
 
  (defn reset []
