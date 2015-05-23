@@ -18,9 +18,7 @@
 
  (defn lp [] (:launchpad system))
 
- (defn snake
-   [& [speed auto-restart]]
+ (defn snake []
    (do
      (mode/set-mode! (lp) :snake)
-     (snake/start-snake (lp) {:speed (or speed 300)
-                              :auto-restart (or auto-restart true)})))
+     (snake/start-snake (lp))))
