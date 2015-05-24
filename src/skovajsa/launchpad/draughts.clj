@@ -33,14 +33,6 @@
        (filter (fn [[_ v]] (some #(= % xy) (keys v))))
        first first))
 
-(defn upd-board
-  "Moves a single piece from one square to another, returns an updated board."
-  [board from to]
-  (let [player (owner-of board from)
-        cs (get board player)
-        rank (get cs from)]
-    (assoc board player (-> cs (dissoc from) (assoc to rank)))))
-
 (defn- vicinity-with-radius
   "Returns a map of possible playable squares around a square within the radius of r."
   [r [x y]]
@@ -63,6 +55,11 @@
   [xy]
   (vicinity-with-radius 2 xy))
 
+(defn within-vicinity?
+  "Is the destination square within the given vicinity of the initial square?"
+  [vicinity-f from to]
+  (some? (some #{to} (-> from vicinity-f vals))))
+
 (defn opponent-in-vicinity
   "Returns a map of opponent's pieces' squares around the given square."
   [board xy]
@@ -74,7 +71,7 @@
          (into {}))))
 
 (defn capturable-pieces-in-vicinity
-  "Returns a vector of capturable opponent pieces around the given square."
+  "Returns a map of capturable opponent pieces around the given square."
   [board xy]
   (->> (opponent-in-vicinity board xy)
        (filter (fn [[k v]] (free-square? board (get (vicinity v) k))))
@@ -97,13 +94,33 @@
            (and (some #{to} (-> from vicinity vals))
                 (free-square? board to)))))
 
+(defn upd-board
+  "Moves a single piece from one square to another. Returns an updated board.
+  If a piece jumps and captures another piece, the captured piece is dissoc-ed."
+  [board from to]
+  (let [player (owner-of board from)
+        ps (get board player)
+        rank (get ps from)]
+    (cond
+      (within-vicinity? vicinity from to)
+      (assoc board player (-> ps (dissoc from) (assoc to rank)))
+
+      (within-vicinity? jump-vicinity from to)
+      (let [[from-x from-y] from [to-x to-y] to
+            captured [(/ (+ from-x to-x) 2) (/ (+ from-y to-y) 2)]
+            opponent (owner-of board captured)
+            opponent-ps (get board opponent)]
+        (-> board
+            (assoc player (-> ps (dissoc from) (assoc to rank)))
+            (assoc opponent (-> opponent-ps (dissoc captured))))))))
+
 ;; State and rendering
 
 (defn- current-state [lp] (-> lp :state deref :draughts))
 
 (defn- upd-state! [lp k v] (swap! (:state lp) assoc-in [:draughts k] v))
 
-(defn toggle-turn
+(defn toggle-turn!
   [lp]
   (let [current-turn (-> lp current-state :turn)]
     (upd-state! lp :turn (->> [:player-1 :player-2]
@@ -123,7 +140,7 @@
                                      (:board colors))]
     (merge (player-m :player-1) (player-m :player-2) free-squares-m)))
 
-(defn render-board
+(defn render-board!
   "Renders the given board, implicitly converting it to a new grid map."
   [lp board]
   (led/upd-grid lp (-> lp current-state :grid) (board->grid lp board)))
@@ -137,40 +154,40 @@
 
 ;; Handlers
 
-(defn select-piece
+(defn select-piece!
   [lp xy]
   (upd-state! lp :selection xy))
 
-(defn clear-selection
+(defn clear-selection!
   [lp]
-  (select-piece lp nil))
+  (select-piece! lp nil))
 
-(defn move-to
+(defn move-to!
   [lp from to]
   (let [new-board (upd-board (-> lp current-state :board) from to)]
-    (render-board lp new-board)
+    (render-board! lp new-board)
     (upd-state! lp :board new-board)
-    (upd-state! lp :grid (board->grid lp new-board))))
+    (upd-state! lp :grid (board->grid lp new-board))
+    (let [[f-x _] from [t-x _] to]
+      ;; TODO move it out of here
+      (when (= 1 (Math/abs (- t-x f-x))) (toggle-turn! lp)))))
 
 (defn dispatch-event
   "Handles all the behaviour related to pressing a button."
   [lp xy]
-  (let [state (current-state lp)
-        {:keys [board turn selection]} state]
+  (let [{:keys [board turn selection]} (current-state lp)]
     (if selection
       (if (can-move-to? board selection xy)
-        (do
-          (move-to lp selection xy)
-          (clear-selection lp)
-          (toggle-turn lp))
+        (do (move-to! lp selection xy)
+            (clear-selection! lp))
         (do
           (prn "can't move it there")
-          (clear-selection lp)))
+          (clear-selection! lp)))
       (if (can-touch? board turn xy)
-        (select-piece lp xy)
+        (select-piece! lp xy)
         (do
           (prn "can't touch this")
-          (clear-selection lp))))))
+          (clear-selection! lp))))))
 
 (defn draughts-handler
   [lp]
