@@ -7,7 +7,7 @@
 ;; Game logic
 
 (def all-cells
-  "All the 'playable' cells on the board."
+  "All the playable cells on the board."
   (remove nil? (for [x (range 1 9) y (range 1 9)]
                  (when (or (and (even? x) (odd? y))
                            (and (odd? x) (even? y)))
@@ -21,39 +21,95 @@
      :player-2 (f [[2 1] [4 1] [6 1] [8 1] [1 2] [3 2]
                    [5 2] [7 2] [2 3] [4 3] [6 3] [8 3]])}))
 
+(defn free-cell?
+  "Is this cell free to move to?"
+  [board xy]
+  (nil? (some #{xy} (->> board vals (map keys) (apply set/union)))))
+
+(defn owner-of
+  "Who owns the checker on the given cell?"
+  [board xy]
+  (->> board
+       (filter (fn [[_ v]] (some #(= % xy) (keys v))))
+       first first))
+
 (defn upd-board
   "Moves a single checker from one cell to another, returns an updated board."
-  [board turn from to]
-  (let [cs (get board turn)
+  [board from to]
+  (let [player (owner-of board from)
+        cs (get board player)
         rank (get cs from)]
-    (assoc board turn (-> cs (dissoc from) (assoc to rank)))))
+    (assoc board player (-> cs (dissoc from) (assoc to rank)))))
 
-(defn cells-around
-  "Returns a vector of playable cells around a cell within the radius of 1."
-  [[x y]]
-  (let [try-inc (fn [n] (when (> 8 n) (inc n)))
-        try-dec (fn [n] (when (< 1 n) (dec n)))]
-    (->> (for [i [(try-dec x) (try-inc x)]
-               d [(try-dec y) (try-inc y)]]
-           [i d])
-         (remove #(some nil? %)))))
+(defn- vicinity-with-radius
+  "Returns a map of possible playable cells around a cell within the radius of r."
+  [r [x y]]
+  (let [try-add (fn [n] (when (> (- 8 (dec r)) n) (+ n r)))
+        try-sbt (fn [n] (when (< r n) (- n r)))]
+    (->> {:up-left [(try-sbt x) (try-sbt y)]
+          :up-right [(try-add x) (try-sbt y)]
+          :down-left [(try-sbt x) (try-add y)]
+          :down-right [(try-add x) (try-add y)]}
+         (remove (fn [[_ v]] (some nil? v)))
+         (into {}))))
+
+(defn vicinity
+  "Returns a map of adjacent diagonal cells."
+  [xy]
+  (vicinity-with-radius 1 xy))
+
+(defn jump-vicinity
+  "Returns a map of possible playable cells within the radius of 2."
+  [xy]
+  (vicinity-with-radius 2 xy))
+
+(defn villains-in-vicinity
+  "Returns a map of enemy checkers' cells around the given cell."
+  [board xy]
+  (let [enemy (->> [:player-1 :player-2]
+                   (remove #(= % (owner-of board xy)))
+                   first)]
+    (->> (vicinity xy)
+         (filter (fn [[_ v]] (some #{v} (-> board (get enemy) keys))))
+         (into {}))))
+
+(defn capturable-villains-in-vicinity
+  "Returns a vector of capturable checkers around the given cell."
+  [board xy]
+  (->> (villains-in-vicinity board xy)
+       (filter (fn [[k v]] (free-cell? board (get (vicinity v) k))))
+       (into {})))
 
 (defn can-touch?
   "Is this cell playable in current turn?"
   [board turn xy]
-  (some? (some #{xy} (-> board turn keys))))
+  (= turn (owner-of board xy)))
 
 (defn can-move-to?
   "Can the checker on this cell be moved to the other cell?"
   [board from to]
-  ;; TODO
-  (some? (some #{to} all-cells)))
+  (and (some #{to} all-cells)
+       (or (and (when-let [dir (->> (jump-vicinity from)
+                                    (filter (fn [[_ v]] (= v to)))
+                                    first first)]
+                  (prn (capturable-villains-in-vicinity board from))
+                  (some #{dir} (keys (capturable-villains-in-vicinity board from))))
+                (free-cell? board to))
+           (and (some #{to} (-> from vicinity vals))
+                (free-cell? board to)))))
 
 ;; State and rendering
 
 (defn- current-state [lp] (-> lp :state deref :checkers))
 
 (defn- upd-state! [lp k v] (swap! (:state lp) assoc-in [:checkers k] v))
+
+(defn toggle-turn
+  [lp]
+  (let [current-turn (-> lp current-state :turn)]
+    (upd-state! lp :turn (->> [:player-1 :player-2]
+                              (remove #(= % current-turn))
+                              first))))
 
 (defn board->grid
   "Converts a board map into a grid map."
@@ -92,8 +148,7 @@
 
 (defn move-to
   [lp from to]
-  (let [{:keys [board turn]} (current-state lp)
-        new-board (upd-board board turn from to)]
+  (let [new-board (upd-board (-> lp current-state :board) from to)]
     (render-board lp new-board)
     (upd-state! lp :board new-board)
     (upd-state! lp :grid (board->grid lp new-board))))
@@ -107,7 +162,8 @@
       (if (can-move-to? board selection xy)
         (do
           (move-to lp selection xy)
-          (clear-selection lp))
+          (clear-selection lp)
+          (toggle-turn lp))
         (do
           (prn "can't move it there")
           (clear-selection lp)))

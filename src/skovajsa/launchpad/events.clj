@@ -46,7 +46,7 @@
      :user2 [:echo-repl]
      :mixer [:echo-led]
      :snake [:snake-nav]
-     :checkers [:echo-repl :checkers-handler]} mode))
+     :checkers [:checkers-handler]} mode))
 
 (defn bind!
   "Binds a seq of events to the Launchpad. Returns the Launchpad component."
