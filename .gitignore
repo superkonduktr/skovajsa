@@ -11,3 +11,4 @@ pom.xml.asc
 .idea/
 .idea_modules/
 /out/
+.DS_Store

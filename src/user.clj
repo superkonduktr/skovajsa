@@ -3,7 +3,7 @@
              [com.stuartsierra.component :as component]
              [skovajsa.launchpad.mode :as mode]
              [skovajsa.launchpad.snake :as snake]
-             [skovajsa.launchpad.checkers :as checkers]))
+             [skovajsa.launchpad.draughts :as draughts]))
 
  (def system (new-system))
 
@@ -23,7 +23,7 @@
    (mode/set-mode! (lp) :snake)
    (snake/start-snake (lp)))
 
- (defn checkers
+ (defn draughts
    [& [colors]]
-   (mode/set-mode! (lp) :checkers)
-   (checkers/start-game (lp)))
+   (mode/set-mode! (lp) :draughts)
+   (draughts/start-game (lp)))
