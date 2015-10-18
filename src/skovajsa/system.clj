@@ -1,6 +1,6 @@
  (ns skovajsa.system
-   (:require [skovajsa.launchpad :refer [new-launchpad]]
-             [com.stuartsierra.component :as component]))
+   (:require [com.stuartsierra.component :as component]
+             [ovation.launchpad :refer [new-launchpad]]))
 
  (def config
    {:launchpad {:default-mode :session

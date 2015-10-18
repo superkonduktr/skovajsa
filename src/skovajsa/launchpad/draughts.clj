@@ -1,8 +1,8 @@
 (ns skovajsa.launchpad.draughts
   (:require [clojure.set :as set]
-            [skovajsa.launchpad.grid :as grid]
-            [skovajsa.launchpad.led :as led]
-            [skovajsa.launchpad.utils :as utils]))
+            [ovation.launchpad.grid :as grid]
+            [ovation.launchpad.led :as led]
+            [ovation.launchpad.utils :as utils]))
 
 ;; Game logic
 

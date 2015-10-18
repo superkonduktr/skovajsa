@@ -1,7 +1,7 @@
  (ns user
    (:require [skovajsa.system :refer [new-system]]
              [com.stuartsierra.component :as component]
-             [skovajsa.launchpad.mode :as mode]
+             [ovation.launchpad.mode :as mode]
              [skovajsa.launchpad.snake :as snake]
              [skovajsa.launchpad.draughts :as draughts]))
 

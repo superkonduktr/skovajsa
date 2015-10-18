@@ -1,6 +1,6 @@
 (ns skovajsa.launchpad.lp-print
-  (:require [overtone.midi :as midi]
-            [skovajsa.launchpad.utils :as utils]))
+  (:require [ovation.launchpad.utils :as utils]
+            [overtone.midi :as midi]))
 
 (def char-map
   {\e [1 2 2 3 4 5 6 17 18 33 34 49 50 50 51 52 53 65 66 81 82 97 98 113 114 114 115 116 117 118]

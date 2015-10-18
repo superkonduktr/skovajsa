@@ -1,8 +1,8 @@
 (ns skovajsa.launchpad.snake
   (:require [clojure.set :refer [difference]]
-            [skovajsa.launchpad.grid :as grid]
-            [skovajsa.launchpad.led :as led]
-            [skovajsa.launchpad.utils :as utils]))
+            [ovation.launchpad.grid :as grid]
+            [ovation.launchpad.led :as led]
+            [ovation.launchpad.utils :as utils]))
 
 (defn- up
   [s]
